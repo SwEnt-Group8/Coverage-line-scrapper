@@ -65,7 +65,7 @@ jobs:
 
         # Prepare the JSON object formatted
         badge_data = {
-            "Line coverage": coverage_data
+            "LineCoverage": coverage_data
         }
 
         # Write the updated data directly to the JSON file
