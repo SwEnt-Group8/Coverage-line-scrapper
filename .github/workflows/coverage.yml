@@ -1,86 +1,86 @@
-name: Fetch Latest Coverage
+# name: Fetch Latest Coverage
 
-on:
-  push:
-  workflow_dispatch:
-  schedule:
-    - cron: '7,17,27,37,47,57 * * * *'
+# on:
+#   push:
+#   workflow_dispatch:
+#   schedule:
+#     - cron: '7,17,27,37,47,57 * * * *'
 
-permissions:
-  contents: write
+# permissions:
+#   contents: write
 
-jobs:
-  fetch-coverage:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v4
+# jobs:
+#   fetch-coverage:
+#     runs-on: ubuntu-latest
+#     steps:
+#     - uses: actions/checkout@v4
 
-    - uses: actions/setup-python@v5
-      with:
-        python-version: '3.12'
-        cache: 'pip'
+#     - uses: actions/setup-python@v5
+#       with:
+#         python-version: '3.12'
+#         cache: 'pip'
 
-    - name: Install Python tools
-      run: pip install playwright requests
+#     - name: Install Python tools
+#       run: pip install playwright requests
 
-    - name: Install Playwright Browsers
-      run: playwright install
+#     - name: Install Playwright Browsers
+#       run: playwright install
 
-    - name: Fetch and Parse Coverage Data using Playwright
-      run: |
-        python - <<EOF
-        from playwright.sync_api import sync_playwright
-        import json
-        from datetime import datetime
+#     - name: Fetch and Parse Coverage Data using Playwright
+#       run: |
+#         python - <<EOF
+#         from playwright.sync_api import sync_playwright
+#         import json
+#         from datetime import datetime
 
-        def extract_line_coverage():
-            with sync_playwright() as p:
-                # Launch a headless browser
-                browser = p.chromium.launch(headless=True)
-                page = browser.new_page()
+#         def extract_line_coverage():
+#             with sync_playwright() as p:
+#                 # Launch a headless browser
+#                 browser = p.chromium.launch(headless=True)
+#                 page = browser.new_page()
 
-                # Navigate to the URL
-                page.goto('https://sonarcloud.io/component_measures?metric=line_coverage&view=list&id=SwEnt-Group8_Street-work-app')
+#                 # Navigate to the URL
+#                 page.goto('https://sonarcloud.io/component_measures?metric=line_coverage&view=list&id=SwEnt-Group8_Street-work-app')
 
-                # Wait for the page to load completely
-                page.wait_for_timeout(5000)  # Adjust as needed
+#                 # Wait for the page to load completely
+#                 page.wait_for_timeout(5000)  # Adjust as needed
 
-                # Use XPath to find the element containing the line coverage value
-                coverage_element = page.locator('xpath=//*[@id="measure-line_coverage-value"]/span')
+#                 # Use XPath to find the element containing the line coverage value
+#                 coverage_element = page.locator('xpath=//*[@id="measure-line_coverage-value"]/span')
 
-                # Get the text content from the selected element
-                if coverage_element:
-                    coverage_data = coverage_element.inner_text()
-                    print(f"Extracted Line Coverage: {coverage_data}")
-                    return coverage_data
-                else:
-                    print("Line coverage data not found.")
-                    return "Data not found"
+#                 # Get the text content from the selected element
+#                 if coverage_element:
+#                     coverage_data = coverage_element.inner_text()
+#                     print(f"Extracted Line Coverage: {coverage_data}")
+#                     return coverage_data
+#                 else:
+#                     print("Line coverage data not found.")
+#                     return "Data not found"
 
-                # Close the browser
-                browser.close()
+#                 # Close the browser
+#                 browser.close()
 
-        # Extract the coverage data
-        coverage_data = extract_line_coverage()
+#         # Extract the coverage data
+#         coverage_data = extract_line_coverage()
 
-        # Prepare the JSON object formatted
-        badge_data = {
-            "LineCoverage": coverage_data
-        }
+#         # Prepare the JSON object formatted
+#         badge_data = {
+#             "LineCoverage": coverage_data
+#         }
 
-        # Write the updated data directly to the JSON file
-        with open('parsed-coverage.json', 'w') as f:
-            json.dump(badge_data, f, indent=2)
+#         # Write the updated data directly to the JSON file
+#         with open('parsed-coverage.json', 'w') as f:
+#             json.dump(badge_data, f, indent=2)
 
-        print("Parsed coverage data:", badge_data)
-        EOF
-        head -n 20 parsed-coverage.json
+#         print("Parsed coverage data:", badge_data)
+#         EOF
+#         head -n 20 parsed-coverage.json
 
-    - name: Generate commit message, commit and push
-      run: |-
-        git config user.name "Automated"
-        git config user.email "actions@users.noreply.github.com"
-        git add parsed-coverage.json
-        git commit -m "Update coverage data" || exit 0
-        git pull --rebase
-        git push
+#     - name: Generate commit message, commit and push
+#       run: |-
+#         git config user.name "Automated"
+#         git config user.email "actions@users.noreply.github.com"
+#         git add parsed-coverage.json
+#         git commit -m "Update coverage data" || exit 0
+#         git pull --rebase
+#         git push
